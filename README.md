@@ -41,6 +41,8 @@ hardware/   外设驱动
   servo.c       舵机 PWM（Timer0 软件生成）
   delay.c       微秒/毫秒延时
 docs/       原理图、PCB、调试记录
+  images/   实物照片、仿真截图
+  video/    实物演示、Proteus 仿真
 ```
 
 ## 状态机
@@ -92,11 +94,35 @@ Timer0 中断里直接算角度映射，浮点运算拖长了中断，PWM 节拍
 Keil C51，Target 选 STC15F2K60S2，晶振 12 MHz。
 工程文件在 `project/` 下，或者把 `main/ app/ hardware/` 三个目录的 `.c` 全部加入工程。
 
+## 演示
+
+**实物运行**（39 秒）：开机、输入密码、A 键确认、B 键退格、C 键清零、D 键改密码。
+
+[![实物演示](docs/images/device-physical.jpg)](docs/video/demo-physical.mp4)
+
+▶ [docs/video/demo-physical.mp4](docs/video/demo-physical.mp4)（11.7 MB，1080p）
+
+**Proteus 仿真**（48 秒）：打板之前先用仿真验证状态机和键盘逻辑，能看到 LCD 显示和按键响应。
+
+[![Proteus 仿真](docs/images/sim-proteus.jpg)](docs/video/demo-proteus.mp4)
+
+▶ [docs/video/demo-proteus.mp4](docs/video/demo-proteus.mp4)（3.5 MB）
+
 ## 实物
 
-PCB 打样文件见 `docs/Gerber_自制密码锁.zip`，板子 60×40 mm。
+![整机](docs/images/device-physical.jpg)
 
-打样出来发现两个问题，但没重新打板（时间不够，而且能凑合用）：
+实物是模块拼的，装在纸盒里（外壳是包装盒剪的，比较糙）：
+
+- LCD1602（4 位模式，省 4 个 IO）
+- 4×4 薄膜矩阵键盘，A/B/C/D 四个功能键
+- STC15F2K60S2 最小系统板
+- SG90 舵机当锁舌
+- AT24C02 存密码和开锁记录
+
+PCB 打样文件在 `docs/Gerber_自制密码锁.zip`，板子 60×40 mm。**打样了但最后没用上**——器件到货晚了，先用模块搭起来跑通功能，PCB 就一直放着。所以视频里看到的是模块，不是那块板子。
+
+打样过程中发现的问题（在模块上验证过）：
 
 1. **舵机电源和 MCU 共地导致偶尔复位**。舵机启动瞬间电流冲到 700 mA，地线上抬，MCU 复位。临时在舵机电源脚并了 100 µF 电容压住了，正式做法应该是电源分开或者加 LC 滤波。
 2. **长排线时按键不稳**。键盘上拉用的是 10 kΩ，接 20 cm 排线后分布电容让边沿变缓，偶尔误触发。换成 4.7 kΩ 会好一些，这个没验证。
